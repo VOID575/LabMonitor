@@ -1,0 +1,26 @@
+services:
+  dotnet-app:
+    # user: "${UID}:${GID}"
+    image: mcr.microsoft.com/dotnet/sdk:8.0
+    container_name: homelab-manager-dev
+    volumes:
+      - ./LabApi:/app
+      # Access to Docker daemon to manage containers from within the app
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Access to the needed host configuration files
+      # Those files are needed by the application to manage network and SSH settings on its interface
+      - /etc/ssh:/etc/ssh_host:ro # 'ro' stands for read-only 
+      - /etc/NetworkManager:/etc/NetworkManager_host:ro
+      - /app/bin                    
+      - /app/obj 
+    # entrypoint: dotnet watch run --urls "http://0.0.0.0:5000"
+    working_dir: /app
+    ports:
+      - "5000:5000" # API port
+      # - "5001:5001" # HTTPS port 
+    environment:
+      - DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER=true
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5000
+
+    command: tail -f /dev/null

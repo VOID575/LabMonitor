@@ -1,8 +1,8 @@
 services:
-  dotnet-app:
+  api:
     # user: "${UID}:${GID}"
     image: mcr.microsoft.com/dotnet/sdk:8.0
-    container_name: homelab-manager-dev
+    container_name: LabApi
     volumes:
       - ./LabApi:/app
       # Access to Docker daemon to manage containers from within the app
@@ -23,4 +23,19 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5000
 
-    command: tail -f /dev/null
+    # command: tail -f /dev/null
+    command: dotnet watch run --urls "http://0.0.0.0:5000"
+
+  web:
+    container_name: LabInterface
+    build:
+      target: development
+      context: ./LabInterface
+      dockerfile: ./../docker/ui/Dockerfile
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./LabInterface:/app   
+      - /app/node_modules
+    depends_on:
+      - api

@@ -1,3 +1,10 @@
 .idea/
 Folder.DotSettings.user
 **/*.DotSettings.user
+
+# .NET / C#
+[Bb]in/
+[Oo]bj/
+
+# Rider files
+*.sln.docstates

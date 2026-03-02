@@ -152,3 +152,19 @@ This is the code that allows to handle the concurrency and buffering of logs in 
        v
 [ Client Web (WebSocket) ]
 ```
+
+### Test the log streaming :
+
+To test the log streaming, you can use the Angular client to connect to the SignalR hub and display the logs in real-time. You can also use tools like Postman or curl to send requests to the REST API to start containers and trigger log streaming.
+
+First :
+```json
+{"protocol":"json","version":1}
+```
+
+Then :
+```json
+{"type":4,"invocationId":"1","target":"GetLogStream","arguments":["7026077ea5f4"]}
+```
+
+**You must keep the special character ""** at the end of each message, as it is used by SignalR to delimit messages in the WebSocket stream.

@@ -31,11 +31,25 @@ namespace LabApi.Controllers
         }
 
         [HttpGet("containers")]
-        public async Task<IActionResult> GetContainers()
+        public async Task<IActionResult> GetAllContainers()
         {   
             try
             {
                 var containers = await this._containerResolver.GetAllContainers();
+                return this._httpErrorCodeResolver.Resolve(Result<List<Container>>.Success(containers));
+            }
+            catch (Exception exception)
+            {
+                return this._httpErrorCodeResolver.Resolve(Result.Failure(exception));
+            }
+        }
+        
+        [HttpGet("containers/raw")]
+        public async Task<IActionResult> GetContainers()
+        {   
+            try
+            {
+                var containers = await this._dockerClient.Containers.ListContainersAsync(new ContainersListParameters() { All = true });
                 return this._httpErrorCodeResolver.Resolve(Result<IList<ContainerListResponse>>.Success(containers));
             }
             catch (Exception exception)
@@ -44,19 +58,20 @@ namespace LabApi.Controllers
             }
         }
         
-        [HttpGet("containers/{id}")]
-        public async Task<IActionResult> GetContainerById(string id)
-        {   
-            try
-            {
-                var containers = await this._containerResolver.GetAllContainers();
-                return this._httpErrorCodeResolver.Resolve(Result<IList<ContainerListResponse>>.Success(containers));
-            }
-            catch (Exception exception)
-            {
-                return this._httpErrorCodeResolver.Resolve(Result.Failure(exception));
-            }
-        }
+        // TODO
+        // [HttpGet("containers/{id}")]
+        // public async Task<IActionResult> GetContainerById(string id)
+        // {   
+        //     try
+        //     {
+        //         var containers = await this._containerResolver.GetAllContainers();
+        //         return this._httpErrorCodeResolver.Resolve(Result<Container>.Success(containers.Find(id)));
+        //     }
+        //     catch (Exception exception)
+        //     {
+        //         return this._httpErrorCodeResolver.Resolve(Result.Failure(exception));
+        //     }
+        // }
         
         [HttpPost("startContainer/{id}")]
         public async Task<IActionResult> StartContainer(string id)

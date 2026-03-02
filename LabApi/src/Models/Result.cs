@@ -23,7 +23,7 @@ public class Result
 
     // Declare manual failure
     public static Result Failure(ErrorType type, string message) 
-        => new Result(false, type, message);
+        => new Result(false, type, message);    
 
     // Resolve proper exception
     public static Result Failure(Exception exception)

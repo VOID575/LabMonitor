@@ -19,6 +19,19 @@ public static class ServicesExtensions
                     new Uri("unix:///var/run/docker.sock"))
                 .CreateClient();
         });
+        
+        // Avoid CORS issues when the Angular frontend tries to access the API
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowAngularFrontend",
+                policy =>
+                {
+                    policy.WithOrigins("http://localhost:4200") 
+                        .AllowAnyHeader()                     
+                        .AllowAnyMethod()                     
+                        .AllowCredentials();                  
+                });
+        });
 
         builder.Services.AddSingleton<HttpErrorCodeResolver>();
         builder.Services.AddScoped<ContainerLifeCycleManager>();

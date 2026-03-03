@@ -1,0 +1,117 @@
+<div class="min-h-screen bg-slate-950 text-slate-200 p-8 font-sans">
+
+  <a [routerLink]="routes.DASHBOARD" class="inline-flex items-center gap-2 text-slate-400 hover:text-slate-200 no-underline mb-6 text-sm transition-colors duration-200">
+    <span>←</span> Retour au tableau de bord
+  </a>
+
+  <header class="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-8 shadow-sm">
+    <div class="flex items-start gap-5 mb-6">
+      <div class="text-4xl bg-slate-800/50 p-4 rounded-xl flex-shrink-0 border border-slate-700/50">
+        📺
+      </div>
+      <div>
+        <div class="flex items-center gap-4">
+          <h1 class="text-2xl font-semibold m-0 text-white">{{ stackData.name }}</h1>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border"
+                [ngClass]="stackData.status === 'healthy' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'">
+            <span class="w-1.5 h-1.5 rounded-full"
+                  [ngClass]="stackData.status === 'healthy' ? 'bg-emerald-400' : 'bg-red-400'"></span>
+            {{ stackData.status === 'healthy' ? 'Sain' : 'Erreur' }}
+          </span>
+        </div>
+        <p class="text-slate-400 mt-2 text-sm">{{ stackData.description }}</p>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap gap-6 text-slate-400 text-sm pt-5 border-t border-slate-800">
+      <span class="flex items-center gap-2">
+        Catégorie: <span class="bg-slate-800 px-2.5 py-1 rounded-md text-slate-300">{{ stackData.category }}</span>
+      </span>
+      <span class="flex items-center gap-1.5">⚙️ CPU total: {{ stackData.totalCpu }}</span>
+      <span class="flex items-center gap-1.5">💾 RAM totale: {{ stackData.totalRam }}</span>
+    </div>
+  </header>
+
+  <h2 class="text-lg font-semibold mb-4 text-white">Conteneurs ({{ stackData.containers.length }})</h2>
+
+  <div class="flex flex-col gap-5">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-sm" *ngFor="let container of stackData.containers">
+
+      <div class="flex justify-between items-center mb-2">
+        <div class="flex items-center gap-4">
+          <h3 class="text-lg font-semibold m-0 text-white">{{ container.name }}</h3>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border"
+                [ngClass]="container.status === 'running' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-slate-500/10 text-slate-400 border-slate-500/20'">
+            <span class="w-1.5 h-1.5 rounded-full"
+                  [ngClass]="container.status === 'running' ? 'bg-emerald-400' : 'bg-slate-400'"></span>
+            {{ container.status === 'running' ? 'En cours' : 'Arrêté' }}
+          </span>
+        </div>
+        <div class="flex gap-1">
+          <button class="text-slate-400 hover:bg-slate-800 hover:text-white p-2 rounded-lg transition-colors" title="Logs">📄</button>
+          <button class="text-slate-400 hover:bg-slate-800 hover:text-white p-2 rounded-lg transition-colors" title="Restart">↻</button>
+          <button class="text-slate-400 hover:bg-slate-800 hover:text-white p-2 rounded-lg transition-colors" title="Stop">⏹</button>
+          <button class="text-slate-400 hover:bg-slate-800 hover:text-red-400 p-2 rounded-lg transition-colors" title="Delete">🗑</button>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-1.5 text-sm text-slate-400 mb-6">
+        <span>Image: {{ container.image }}</span>
+        <span>⏱ Uptime: {{ container.uptime }}</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+
+        <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+          <div class="text-xs text-slate-400 mb-2 flex items-center gap-1.5">
+            <span>⚙️</span> CPU
+          </div>
+          <div class="text-2xl font-medium text-white mb-1">{{ container.stats.cpuUsagePercent }}%</div>
+          <div class="h-5 mb-3"></div>
+          <div class="w-full h-1.5 bg-slate-700/50 rounded-full overflow-hidden">
+            <div class="h-full bg-blue-500 rounded-full transition-all duration-500 ease-out"
+                 [style.width.%]="container.stats.cpuUsagePercent"></div>
+          </div>
+        </div>
+
+        <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+          <div class="text-xs text-slate-400 mb-2 flex items-center gap-1.5">
+            <span>💾</span> Mémoire
+          </div>
+          <div class="text-2xl font-medium text-white mb-1">
+            {{ container.stats.memoryUsedMB }} <span class="text-sm text-slate-500 font-normal">MB</span>
+          </div>
+          <div class="text-xs text-slate-500 mb-3">Limite: {{ container.stats.memoryLimitMB }} MB</div>
+          <div class="w-full h-1.5 bg-slate-700/50 rounded-full overflow-hidden">
+            <div class="h-full bg-emerald-500 rounded-full transition-all duration-500 ease-out"
+                 [style.width.%]="getMemoryPercentage(container.stats.memoryUsedMB, container.stats.memoryLimitMB)"></div>
+          </div>
+        </div>
+
+        <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+          <div class="text-xs text-slate-400 mb-2 flex items-center gap-1.5">
+            <span>⬇️</span> Réseau RX
+          </div>
+          <div class="text-2xl font-medium text-white mt-4">{{ container.stats.networkRx }}</div>
+        </div>
+
+        <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+          <div class="text-xs text-slate-400 mb-2 flex items-center gap-1.5">
+            <span>⬆️</span> Réseau TX
+          </div>
+          <div class="text-2xl font-medium text-white mt-4">{{ container.stats.networkTx }}</div>
+        </div>
+      </div>
+
+      <div>
+        <span class="block text-sm text-slate-400 mb-3">Ports exposés:</span>
+        <div class="flex flex-wrap gap-2">
+          <span class="bg-slate-800/80 border border-slate-700 px-3 py-1.5 rounded-md text-sm text-slate-300 flex items-center gap-1.5"
+                *ngFor="let port of container.ports">
+            <span class="text-slate-500">↗</span> {{ port }}
+          </span>
+        </div>
+      </div>
+
+    </div>
+  </div>

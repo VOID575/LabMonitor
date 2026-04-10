@@ -8,7 +8,7 @@ export const routes: Routes = [
     component: DashboardComponent,
   },
   {
-    path: 'project/:name',
+    path: 'project/:projectName',
     component: ProjectDetailComponent,
   },
   {

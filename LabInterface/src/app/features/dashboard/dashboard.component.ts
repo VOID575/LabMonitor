@@ -4,11 +4,13 @@ import { ContainerProvider } from '../../core/api/container-provider';
 import { DockerContainer } from '../../shared/Interfaces/containers/containers.model';
 import { ContainerManager } from '../../core/api/container-manager';
 import { ContainerGroup } from '../../shared/Interfaces/containers/container-group.model';
+import {AppRoutes} from '../../app.routes.names';
+import { Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './dashboard.component.html'
 })
 export class DashboardComponent implements OnInit {
@@ -19,7 +21,7 @@ export class DashboardComponent implements OnInit {
   containerManager : ContainerManager;
   containerProvider : ContainerProvider;
 
-  constructor(private cdr: ChangeDetectorRef) {
+  constructor(private cdr: ChangeDetectorRef, private router: Router) {
     this.containerManager = new ContainerManager();
     this.containerProvider = new ContainerProvider();
   }
@@ -39,4 +41,5 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  protected readonly routes = AppRoutes;
 }

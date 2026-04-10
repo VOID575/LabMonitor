@@ -1,0 +1,50 @@
+<div class="min-h-screen bg-slate-950 text-slate-200 p-8 font-sans">
+
+  <a [routerLink]="routes.DASHBOARD" class="inline-flex items-center gap-2 text-slate-400 hover:text-slate-200 no-underline mb-6 text-sm transition-colors duration-200">
+    <span>←</span> Retour au tableau de bord
+  </a>
+
+  <!-- Simple header showing project name and back link already present above -->
+
+  <div class="mt-4" *ngIf="isBrowser">
+    <h2 class="text-lg font-semibold mb-4 text-white">Conteneurs ({{ containers.length }})</h2>
+
+    <div class="flex flex-col gap-5">
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-sm" *ngFor="let container of containers">
+
+        <div class="flex justify-between items-center mb-2">
+          <div class="flex items-center gap-4">
+            <h3 class="text-lg font-semibold m-0 text-white">{{ container.name }}</h3>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border"
+                  [ngClass]="container.state === 'running' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-slate-500/10 text-slate-400 border-slate-500/20'">
+              <span class="w-1.5 h-1.5 rounded-full"
+                    [ngClass]="container.state === 'running' ? 'bg-emerald-400' : 'bg-slate-400'"></span>
+              {{ container.state === 'running' ? 'En cours' : 'Arrêté' }}
+            </span>
+          </div>
+
+          <div class="text-sm text-slate-400">ID: <span class="text-slate-300">{{ container.id }}</span></div>
+        </div>
+
+        <div class="flex flex-col gap-1.5 text-sm text-slate-400 mb-4">
+          <span *ngIf="container.labels">Service: {{ container.labels.Service }} <span class="text-slate-400">v{{ container.labels.Version }}</span></span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+          <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
+            <div class="text-xs text-slate-400 mb-2">CPU</div>
+            <div class="text-lg font-medium text-white">{{ container.cpuUsage ?? '—' }}%</div>
+          </div>
+          <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
+            <div class="text-xs text-slate-400 mb-2">Mémoire</div>
+            <div class="text-lg font-medium text-white">{{ container.memoryUsage ?? '—' }} MB</div>
+          </div>
+        </div>
+
+
+      </div>
+
+    </div>
+  </div>
+
+</div>

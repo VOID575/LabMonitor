@@ -31,42 +31,44 @@
     <!-- Groupes -->
     <div *ngFor="let group of containerGroups" class="bg-[#111827] border border-slate-800 rounded-xl p-5 shadow-lg">
 
-      <div class="flex justify-between items-start mb-4">
-        <div class="flex items-center gap-4">
-          <div class="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center">
-            🖥️
-          </div>
-
-          <div>
-            <div class="flex items-center gap-3">
-              <h2 class="text-xl text-white font-medium">{{ group.projectName | titlecase }}</h2>
-
-              <span class="px-2 py-0.5 rounded-full text-xs font-medium flex items-center gap-1.5"
-                    [ngClass]="{
-                      'bg-emerald-500/10 text-emerald-400': group.groupState === 'running',
-                      'bg-amber-500/10 text-amber-400': group.groupState === 'warning',
-                      'bg-rose-500/10 text-rose-400': group.groupState === 'exited' || group.groupState === 'dead'
-                    }">
-                <div class="w-1.5 h-1.5 rounded-full"
-                     [ngClass]="{
-                       'bg-emerald-400': group.groupState === 'running',
-                       'bg-amber-400': group.groupState === 'warning',
-                       'bg-rose-400': group.groupState === 'exited' || group.groupState === 'dead'
-                     }"></div>
-                {{ group.groupState === 'running' ? 'Sain' : (group.groupState === 'warning' ? 'Attention' : 'Erreur') }}
-              </span>
+      <a [routerLink]="routes.PROJECT_DETAIL(group.projectName)" class="block hover:bg-[#1f2937] rounded-lg transition-colors duration-200">
+        <div class="flex justify-between items-start mb-4">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center">
+              🖥️
             </div>
 
-            <p class="text-sm text-slate-400 mt-1">
-              Groupe de conteneurs pour {{ group.projectName }}
-            </p>
+            <div>
+              <div class="flex items-center gap-3">
+                <h2 class="text-xl text-white font-medium">{{ group.projectName | titlecase }}</h2>
+
+                <span class="px-2 py-0.5 rounded-full text-xs font-medium flex items-center gap-1.5"
+                      [ngClass]="{
+                        'bg-emerald-500/10 text-emerald-400': group.groupState === 'running',
+                        'bg-amber-500/10 text-amber-400': group.groupState === 'warning',
+                        'bg-rose-500/10 text-rose-400': group.groupState === 'exited' || group.groupState === 'dead'
+                      }">
+                  <div class="w-1.5 h-1.5 rounded-full"
+                       [ngClass]="{
+                         'bg-emerald-400': group.groupState === 'running',
+                         'bg-amber-400': group.groupState === 'warning',
+                         'bg-rose-400': group.groupState === 'exited' || group.groupState === 'dead'
+                       }"></div>
+                  {{ group.groupState === 'running' ? 'Sain' : (group.groupState === 'warning' ? 'Attention' : 'Erreur') }}
+                </span>
+              </div>
+
+              <p class="text-sm text-slate-400 mt-1">
+                Groupe de conteneurs pour {{ group.projectName }}
+              </p>
+            </div>
           </div>
+
+          <button class="text-slate-500 hover:text-white transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+          </button>
         </div>
 
-        <button class="text-slate-500 hover:text-white transition-colors">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-        </button>
-      </div>
 
       <div class="flex items-center gap-6 text-sm text-slate-400 mb-5 ml-16">
         <div class="flex items-center gap-1.5">
@@ -82,6 +84,7 @@
           RAM: {{ group.totalMemory }} GB
         </div>
       </div>
+
 
       <div class="flex flex-wrap gap-3 ml-16">
         <div *ngFor="let container of group.containers"
@@ -105,6 +108,8 @@
           <span class="text-slate-300 ml-1">{{ container.name }}</span>
         </div>
       </div>
+      </a>
+
 
     </div>
   </div>

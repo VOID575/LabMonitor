@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using LabApi.Services;
 using LabApi.Models;
 using LabApi.Services.docker;
+using LabApi.Enum;
 
 namespace LabApi.Controllers
 {
@@ -43,8 +44,8 @@ namespace LabApi.Controllers
                 return this._httpErrorCodeResolver.Resolve(Result.Failure(exception));
             }
         }
-        
-        [HttpGet("containers/raw")]
+
+        [HttpGet("containers-raw")]
         public async Task<IActionResult> GetContainers()
         {   
             try
@@ -58,20 +59,40 @@ namespace LabApi.Controllers
             }
         }
         
-        // TODO
-        // [HttpGet("containers/{id}")]
-        // public async Task<IActionResult> GetContainerById(string id)
-        // {   
-        //     try
-        //     {
-        //         var containers = await this._containerResolver.GetAllContainers();
-        //         return this._httpErrorCodeResolver.Resolve(Result<Container>.Success(containers.Find(id)));
-        //     }
-        //     catch (Exception exception)
-        //     {
-        //         return this._httpErrorCodeResolver.Resolve(Result.Failure(exception));
-        //     }
-        // }
+        [HttpGet("containersById/{id}")]
+        public async Task<IActionResult> GetContainerById(string id)
+        {   
+            try
+            {
+                var filter = new ContainerFilter() { Field = "id", Operator = ContainerFilterOperator.eq, Value = id };
+                var containers = await this._containerResolver.GetFilteredContainers(new List<ContainerFilter> { filter });
+
+                if (containers == null || containers.Count == 0)
+                    return this._httpErrorCodeResolver.Resolve(Result.Failure(new KeyNotFoundException($"Container '{id}' not found")));
+
+                return this._httpErrorCodeResolver.Resolve(Result<Container>.Success(containers.First()));
+            }
+            catch (Exception exception)
+            {
+                return this._httpErrorCodeResolver.Resolve(Result.Failure(exception));
+            }
+        }
+        
+        [HttpGet("containersByProjectName/{projectName}")]
+        public async Task<IActionResult> GetContainersByProjectHash(string projectName)
+        {   
+            try
+            {
+                var filter = new ContainerFilter() { Field = "projectName", Operator = ContainerFilterOperator.eq, Value = projectName };
+                var containers = await this._containerResolver.GetFilteredContainers(new List<ContainerFilter> { filter });
+
+                return this._httpErrorCodeResolver.Resolve(Result<List<Container>>.Success(containers));
+            }
+            catch (Exception exception)
+            {
+                return this._httpErrorCodeResolver.Resolve(Result.Failure(exception));
+            }
+        }
         
         [HttpPost("startContainer/{id}")]
         public async Task<IActionResult> StartContainer(string id)
@@ -99,13 +120,6 @@ namespace LabApi.Controllers
             {
                 return this._httpErrorCodeResolver.Resolve(Result.Failure(exception));
             }
-        }
-        
-        [HttpPost("containers/logs/{id}")]
-        public async Task<IActionResult> getContainerLog(string id)
-        {
-            return this._httpErrorCodeResolver.Resolve(Result.Success());;
-            // TODO
         }
     }
 }

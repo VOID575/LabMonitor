@@ -52,6 +52,14 @@ export class ContainerProvider {
       return await this.getFromApi<DockerContainer[]>('containers');
   }
 
+  public async getContainerById(id : string): Promise<DockerContainer> {
+    return await this.getFromApi<DockerContainer>('containersById/' + id);
+  }
+
+  public async getContainerByProjectName(projectName : string): Promise<DockerContainer[]> {
+    return await this.getFromApi<DockerContainer[]>('containersByProjectName/' + projectName);
+  }
+
   public async StartContainer(id : string): Promise<ApiResult> {
     return await this.requestToApi<ApiResult>('startContainers/' + id);
   }

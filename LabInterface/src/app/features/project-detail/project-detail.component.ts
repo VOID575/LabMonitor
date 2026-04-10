@@ -1,11 +1,13 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, NgZone, Inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { PLATFORM_ID } from '@angular/core';
 import {CommonModule} from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { ContainerProvider } from '../../core/api/container-provider';
-import { ContainerManager } from '../../core/api/container-manager';
-import { ContainerGroup } from '../../shared/Interfaces/containers/container-group.model';
 import { AppRoutes} from '../../app.routes.names';
 import {DockerContainer} from '../../shared/Interfaces/containers/containers.model';
+import { ActivatedRoute } from '@angular/router';
+
 
 @Component({
   standalone: true,
@@ -13,59 +15,48 @@ import {DockerContainer} from '../../shared/Interfaces/containers/containers.mod
   imports: [CommonModule, RouterLink],
   templateUrl: './project-detail.component.html'
 })
-export class ProjectDetailComponent {
+export class ProjectDetailComponent implements OnInit {
 
-  readonly routes = AppRoutes; // expose les routes au template
+  readonly routes = AppRoutes; // Expose AppRoutes to the template
+  containerProvider : ContainerProvider = new ContainerProvider();
+  error: string | null = null;
+  containers: DockerContainer[] = [];
+  isLoading: boolean = true;
+  projectName: string = '';
+  isBrowser: boolean = false;
 
-  public stackData: StackDetails = {
-    name: 'Media Stack',
-    status: 'healthy',
-    description: 'Suite complète de gestion multimédia avec Plex, Sonarr, Radarr et Transmission',
-    category: 'Media',
-    totalCpu: '15.3%',
-    totalRam: '2.8 GB',
-    containers: [
-      {
-        id: '1',
-        name: 'plex-server',
-        status: 'running',
-        image: 'plexinc/pms-docker:latest',
-        uptime: '15d 7h 23m',
-        stats: {
-          cpuUsagePercent: 8.2,
-          memoryUsedMB: 1024,
-          memoryLimitMB: 4096,
-          networkRx: '125.3 GB',
-          networkTx: '89.2 GB'
-        },
-        ports: ['32400:32400', '3005:3005']
-      },
-      {
-        id: '2',
-        name: 'sonarr',
-        status: 'running',
-        image: 'linuxserver/sonarr:latest',
-        uptime: '15d 7h 20m',
-        stats: {
-          cpuUsagePercent: 3.1,
-          memoryUsedMB: 512,
-          memoryLimitMB: 1024,
-          networkRx: '2.1 GB',
-          networkTx: '1.8 GB'
-        },
-        ports: ['8989:8989']
-      }
-    ]
-  };
+  constructor(
+    private router: ActivatedRoute,
+    private cdr: ChangeDetectorRef,
+    private ngZone: NgZone,
+    @Inject(PLATFORM_ID) private platformId: Object,
+  ) {}
 
-  constructor(private router: Router) {}
+  async ngOnInit() {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+    if (!this.isBrowser) {
+      // On server, don't attempt client-only fetch; keep template minimal.
+      this.isLoading = false;
+      return;
+    }
 
-  goToProject(name: string) {
-    this.router.navigate([AppRoutes.PROJECT_DETAIL(name)]);
-  }
+    try {
+      const name = this.router.snapshot.paramMap.get('projectName');
+      console.log(name);
+      this.projectName = name ?? '';
+      const data = await this.containerProvider.getContainerByProjectName(this.projectName);
+      console.log('[ProjectDetail] Conteneurs reçus :', data);
 
-  getMemoryPercentage(used: number, limit: number): number {
-    if (!limit) return 0;
-    return (used / limit) * 100;
+      // assign inside Angular zone to ensure change detection runs
+      this.ngZone.run(() => {
+        this.containers = data;
+        this.isLoading = false;
+        try { this.cdr.detectChanges(); } catch (e) { /* noop */ }
+      });
+    } catch (e: any) {
+      this.error = e?.message ?? 'Erreur inconnue lors du chargement des conteneurs.';
+      console.error('[ProjectDetail] Erreur :', e);
+      this.ngZone.run(() => { this.isLoading = false; try { this.cdr.detectChanges(); } catch {} });
+    }
   }
 }

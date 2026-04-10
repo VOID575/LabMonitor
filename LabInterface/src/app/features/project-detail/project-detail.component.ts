@@ -3,36 +3,9 @@ import {CommonModule} from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { ContainerProvider } from '../../core/api/container-provider';
 import { ContainerManager } from '../../core/api/container-manager';
+import { ContainerGroup } from '../../shared/Interfaces/containers/container-group.model';
 import { AppRoutes} from '../../app.routes.names';
-
-
-interface ContainerStats {
-  cpuUsagePercent: number;
-  memoryUsedMB: number;
-  memoryLimitMB: number;
-  networkRx: string;
-  networkTx: string;
-}
-
-interface Container {
-  id: string;
-  name: string;
-  status: 'running' | 'stopped';
-  image: string;
-  uptime: string;
-  stats: ContainerStats;
-  ports: string[];
-}
-
-interface StackDetails {
-  name: string;
-  status: 'healthy' | 'unhealthy';
-  description: string;
-  category: string;
-  totalCpu: string;
-  totalRam: string;
-  containers: Container[];
-}
+import {DockerContainer} from '../../shared/Interfaces/containers/containers.model';
 
 @Component({
   standalone: true,

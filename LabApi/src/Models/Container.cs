@@ -6,7 +6,7 @@ namespace LabApi.Models;
 
 public class Container
 {
-    // Using init lock the DTO to be immutable, which is a good practice for data transfer objects
+    // Using init lock on the DTO to be immutable, which is a good practice for data transfer objects
     public string Id { get; init; }
     public string Image { get; init; }
     public DateTime Created { get; init; }

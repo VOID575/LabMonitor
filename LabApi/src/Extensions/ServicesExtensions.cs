@@ -1,6 +1,8 @@
 using Docker.DotNet;
 using LabApi.Services;
 using LabApi.Services.docker;
+using JsonStringEnumConverter = System.Text.Json.Serialization.JsonStringEnumConverter;
+using JsonNamingPolicy = System.Text.Json.JsonNamingPolicy;
 
 namespace LabApi.Extensions;
 
@@ -37,5 +39,9 @@ public static class ServicesExtensions
         builder.Services.AddScoped<ContainerLifeCycleManager>();
         builder.Services.AddScoped<ContainerResolver>();
         builder.Services.AddScoped<ContainerLogManager>();
+        builder.Services.AddControllers()
+            .AddJsonOptions(o =>
+                o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase))); // We can precise the type of case ?!
+        
     }
 }

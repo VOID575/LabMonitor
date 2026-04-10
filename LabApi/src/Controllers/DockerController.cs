@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using LabApi.Services;
 using LabApi.Models;
 using LabApi.Services.docker;
+using LabApi.Enum;
 
 namespace LabApi.Controllers
 {
@@ -43,8 +44,8 @@ namespace LabApi.Controllers
                 return this._httpErrorCodeResolver.Resolve(Result.Failure(exception));
             }
         }
-        
-        [HttpGet("containers/raw")]
+
+        [HttpGet("containers-raw")]
         public async Task<IActionResult> GetContainers()
         {   
             try
@@ -99,13 +100,6 @@ namespace LabApi.Controllers
             {
                 return this._httpErrorCodeResolver.Resolve(Result.Failure(exception));
             }
-        }
-        
-        [HttpPost("containers/logs/{id}")]
-        public async Task<IActionResult> getContainerLog(string id)
-        {
-            return this._httpErrorCodeResolver.Resolve(Result.Success());;
-            // TODO
         }
     }
 }

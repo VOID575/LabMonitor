@@ -3,6 +3,8 @@ using LabApi.Services;
 using LabApi.Services.docker;
 using JsonStringEnumConverter = System.Text.Json.Serialization.JsonStringEnumConverter;
 using JsonNamingPolicy = System.Text.Json.JsonNamingPolicy;
+using Ductus.FluentDocker.Builders;
+using Ductus.FluentDocker.Services;
 
 namespace LabApi.Extensions;
 
@@ -21,6 +23,8 @@ public static class ServicesExtensions
                     new Uri("unix:///var/run/docker.sock"))
                 .CreateClient();
         });
+        
+        builder.Services.AddScoped<ComposeManager>();
         
         // Avoid CORS issues when the Angular frontend tries to access the API
         builder.Services.AddCors(options =>

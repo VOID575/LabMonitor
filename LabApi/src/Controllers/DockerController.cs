@@ -5,7 +5,6 @@ using LabApi.Services;
 using LabApi.Models;
 using LabApi.Services.docker;
 using LabApi.Enum;
-using Ductus.FluentDocker;
 
 namespace LabApi.Controllers
 {
@@ -46,7 +45,7 @@ namespace LabApi.Controllers
             }
         }
 
-        [HttpGet("containers-raw")]
+        [HttpGet("containersRaw")]
         public async Task<IActionResult> GetContainers()
         {   
             try

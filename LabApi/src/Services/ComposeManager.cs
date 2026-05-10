@@ -1,6 +1,9 @@
+using System.Diagnostics;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using Ductus.FluentDocker.Builders;
+
+namespace LabApi.Services;
 
 public class ComposeManager
 {
@@ -10,11 +13,9 @@ public class ComposeManager
     {
         _dockerClient = dockerClient;
     }
-
-    public async Task StartDynamicStackAsync(string projectName)
+    
+    private async Task<string> GetComposeFilePathAsync(string projectName)
     {
-        // 1. On interroge l'API Docker pour trouver n'importe quel conteneur de ce projet
-        // (Même s'il est arrêté, All = true permet de le trouver !)
         var parameters = new ContainersListParameters
         {
             All = true,
@@ -28,24 +29,26 @@ public class ComposeManager
         var targetContainer = containers.FirstOrDefault();
 
         if (targetContainer == null)
-            throw new Exception($"Aucun conteneur trouvé pour le projet '{projectName}'.");
+            throw new Exception($"Aucun conteneur existant trouvé pour le projet '{projectName}'. Impossible de localiser le fichier YAML.");
 
-        // 2. On extrait les labels magiques générés par Compose
         targetContainer.Labels.TryGetValue("com.docker.compose.project.working_dir", out var workingDir);
         targetContainer.Labels.TryGetValue("com.docker.compose.project.config_files", out var configFile);
 
         if (string.IsNullOrEmpty(workingDir) || string.IsNullOrEmpty(configFile))
-            throw new Exception("Les labels Docker Compose sont manquants sur ce conteneur.");
+            throw new Exception("Les labels de chemin Docker Compose sont manquants sur ce conteneur.");
 
-        // 3. On assemble le VRAI chemin absolu de ta machine !
-        // Ex: "/home/user/media-stack/docker-compose.yml"
         var fullPath = Path.Combine(workingDir, configFile);
 
         if (!File.Exists(fullPath))
             throw new FileNotFoundException($"Le fichier Compose est introuvable sur le disque : {fullPath}");
 
-        // 4. On lance l'artillerie lourde avec FluentDocker
-        // Ça marchera du premier coup car l'API est sur l'hôte !
+        return fullPath;
+    }
+
+    public async Task StartDynamicStackAsync(string projectName)
+    {
+        var fullPath = await this.GetComposeFilePathAsync(projectName);
+        
         new Builder()
             .UseContainer()
             .UseCompose()
@@ -53,5 +56,52 @@ public class ComposeManager
             .RemoveOrphans()
             .Build()
             .Start();
+    }
+    
+    public async Task StopDynamicStackAsync(string projectName)
+    {
+        var fullPath = await this.GetComposeFilePathAsync(projectName);
+
+        // 2. On configure le processus pour qu'il soit invisible et capture les erreurs
+        var processInfo = new ProcessStartInfo
+        {
+            FileName = "docker",
+            Arguments = $"compose -f \"{fullPath}\" stop",
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+
+        // 3. On lance la commande dans le système d'exploitation
+        using var process = Process.Start(processInfo);
+    
+        if (process == null)
+        {
+            throw new Exception("Le système n'a pas pu démarrer le processus Docker.");
+        }
+
+        // 4. On attend que la commande se termine (sans bloquer le thread de l'API)
+        await process.WaitForExitAsync();
+
+        // 5. On vérifie le code de retour (0 = Succès, tout le reste = Erreur)
+        if (process.ExitCode != 0)
+        {
+            // On lit le message d'erreur généré par Docker pour l'envoyer au Front-end Angular
+            string errorOutput = await process.StandardError.ReadToEndAsync();
+            throw new Exception($"Échec de l'arrêt Docker pour '{projectName}': {errorOutput}");
+        }
+    }
+    
+    public async Task DownDynamicStackAsync(string projectName)
+    {
+        var fullPath = await this.GetComposeFilePathAsync(projectName);
+        
+        new Builder()
+            .UseContainer()
+            .UseCompose()
+            .FromFile(fullPath)
+            .Build()
+            .Dispose();
     }
 }

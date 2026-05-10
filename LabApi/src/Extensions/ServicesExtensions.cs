@@ -3,6 +3,7 @@ using LabApi.Services;
 using LabApi.Services.docker;
 using JsonStringEnumConverter = System.Text.Json.Serialization.JsonStringEnumConverter;
 using JsonNamingPolicy = System.Text.Json.JsonNamingPolicy;
+using System.Runtime.InteropServices;
 using Ductus.FluentDocker.Builders;
 using Ductus.FluentDocker.Services;
 
@@ -22,6 +23,15 @@ public static class ServicesExtensions
             return new DockerClientConfiguration(
                     new Uri("unix:///var/run/docker.sock"))
                 .CreateClient();
+        });
+        
+        var dockerUri = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? new Uri("npipe://./pipe/docker_engine")
+            : new Uri("unix:///var/run/docker.sock");
+        
+        builder.Services.AddSingleton<DockerClient>(provider =>
+        {
+            return new DockerClientConfiguration(dockerUri).CreateClient();
         });
         
         builder.Services.AddScoped<ComposeManager>();

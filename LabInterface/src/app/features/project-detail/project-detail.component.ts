@@ -4,6 +4,7 @@ import { PLATFORM_ID } from '@angular/core';
 import {CommonModule} from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ContainerProvider } from '../../core/api/container-provider';
+import { DockerComposeManager } from '../../core/api/docker-compose-manager';
 import { AppRoutes} from '../../app.routes.names';
 import {DockerContainer} from '../../shared/Interfaces/containers/containers.model';
 import { ActivatedRoute } from '@angular/router';
@@ -19,6 +20,7 @@ export class ProjectDetailComponent implements OnInit {
 
   readonly routes = AppRoutes; // Expose AppRoutes to the template
   containerProvider : ContainerProvider = new ContainerProvider();
+  dockerComposeManager : DockerComposeManager = new DockerComposeManager();
   error: string | null = null;
   containers: DockerContainer[] = [];
   isLoading: boolean = true;
@@ -58,5 +60,54 @@ export class ProjectDetailComponent implements OnInit {
       console.error('[ProjectDetail] Erreur :', e);
       this.ngZone.run(() => { this.isLoading = false; try { this.cdr.detectChanges(); } catch {} });
     }
+  }
+
+  async loadContainers(): Promise<void>{
+    this.containers = await this.containerProvider.getContainerByProjectName(this.projectName);
+  }
+
+  onStartStack() {
+    if (!this.projectName) return;
+    this.isLoading = true;
+
+    this.dockerComposeManager.startProject(this.projectName).then(result => {
+        this.isLoading = false;
+      }).catch( error => {
+        this.error = error;
+        this.isLoading = false;
+    }).finally(() => {
+        this.loadContainers()
+        this.cdr.detectChanges();
+    })
+  }
+
+  onStopStack() {
+    if (!this.projectName) return;
+    this.isLoading = true;
+    console.log('[ProjectDetail] Tentative d\'arrêt de la stack :', this.projectName);
+    this.dockerComposeManager.stopProject(this.projectName).then(result => {
+      this.isLoading = false;
+    }).catch( error => {
+      this.error = error;
+      this.isLoading = false;
+    }).finally(() => {
+      this.loadContainers()
+      this.cdr.detectChanges();
+    })
+  }
+
+  onDownStack() {
+    if (!this.projectName) return;
+    this.isLoading = true;
+
+    this.dockerComposeManager.downProject(this.projectName).then(result => {
+      this.isLoading = false;
+    }).catch( error => {
+      this.error = error;
+      this.isLoading = false;
+    }).finally(() => {
+      this.loadContainers()
+      this.cdr.detectChanges();
+    })
   }
 }

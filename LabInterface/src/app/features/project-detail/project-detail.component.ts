@@ -47,7 +47,7 @@ export class ProjectDetailComponent implements OnInit {
       console.log(name);
       this.projectName = name ?? '';
       const data = await this.containerProvider.getContainerByProjectName(this.projectName);
-      console.log('[ProjectDetail] Conteneurs reçus :', data);
+      console.log('[loadContainersProjectDetail] Conteneurs reçus :', data);
 
       // assign inside Angular zone to ensure change detection runs
       this.ngZone.run(() => {
@@ -62,10 +62,6 @@ export class ProjectDetailComponent implements OnInit {
     }
   }
 
-  async loadContainers(): Promise<void>{
-    this.containers = await this.containerProvider.getContainerByProjectName(this.projectName);
-  }
-
   onStartStack() {
     if (!this.projectName) return;
     this.isLoading = true;
@@ -76,8 +72,7 @@ export class ProjectDetailComponent implements OnInit {
         this.error = error;
         this.isLoading = false;
     }).finally(() => {
-        this.loadContainers()
-        this.cdr.detectChanges();
+      this.refreshDisplayedContainers();
     })
   }
 
@@ -91,8 +86,7 @@ export class ProjectDetailComponent implements OnInit {
       this.error = error;
       this.isLoading = false;
     }).finally(() => {
-      this.loadContainers()
-      this.cdr.detectChanges();
+      this.refreshDisplayedContainers();
     })
   }
 
@@ -106,8 +100,18 @@ export class ProjectDetailComponent implements OnInit {
       this.error = error;
       this.isLoading = false;
     }).finally(() => {
-      this.loadContainers()
+      this.refreshDisplayedContainers();
+    })
+  }
+
+  refreshDisplayedContainers() {
+    this.loadContainers().then(() => {
+      this.isLoading = false;
       this.cdr.detectChanges();
     })
+  }
+
+  async loadContainers(): Promise<void>{
+    this.containers = await this.containerProvider.getContainerByProjectName(this.projectName);
   }
 }

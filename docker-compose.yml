@@ -37,5 +37,5 @@ services:
     volumes:
       - ./LabInterface:/app   
       - /app/node_modules
-    depends_on:
-      - api
+    # depends_on:
+      # - api

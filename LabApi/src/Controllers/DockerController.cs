@@ -45,7 +45,7 @@ namespace LabApi.Controllers
             }
         }
 
-        [HttpGet("containers-raw")]
+        [HttpGet("containersRaw")]
         public async Task<IActionResult> GetContainers()
         {   
             try
@@ -79,13 +79,17 @@ namespace LabApi.Controllers
         }
         
         [HttpGet("containersByProjectName/{projectName}")]
-        public async Task<IActionResult> GetContainersByProjectHash(string projectName)
+        public async Task<IActionResult> GetContainersByProjectName(string projectName)
         {   
             try
             {
                 var filter = new ContainerFilter() { Field = "projectName", Operator = ContainerFilterOperator.eq, Value = projectName };
                 var containers = await this._containerResolver.GetFilteredContainers(new List<ContainerFilter> { filter });
-
+                
+                // Can be moved in an appropriate function or method
+                // Used to clear ghost containers
+                containers.RemoveAll(container => container.Labels.ProjectHash.Equals(""));
+                
                 return this._httpErrorCodeResolver.Resolve(Result<List<Container>>.Success(containers));
             }
             catch (Exception exception)

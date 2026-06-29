@@ -80,7 +80,15 @@ public class ContainerResolver
     //     return mappedContainers.ToList();
     // }
     
-        public async Task<List<Container>> GetFilteredContainers(List<ContainerFilter> filters)
+    // TODO : Try this :
+    // using (var sr = new StringReader(responseJSON))
+    //     using (var jr = new JsonTextReader(sr))
+    // {
+    //     var serial = new JsonSerializer();
+    //     serial.Formatting = Formatting.Indented;
+    //     var obj = serial.Deserialize<Response>(jr);
+    // }
+    public async Task<List<Container>> GetFilteredContainers(List<ContainerFilter> filters)
     {
         var dockerFilters = new Dictionary<string, IDictionary<string, bool>>();
         var containerFilters = new ObjectInspector<Container>();

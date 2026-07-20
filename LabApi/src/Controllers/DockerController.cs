@@ -5,6 +5,7 @@ using LabApi.Services;
 using LabApi.Models;
 using LabApi.Services.docker;
 using LabApi.Enum;
+using LabApi.Interfaces;
 
 namespace LabApi.Controllers
 {

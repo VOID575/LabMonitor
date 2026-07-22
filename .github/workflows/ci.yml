@@ -1,0 +1,24 @@
+stages:
+- app-lint
+- api-lint
+- api-test
+
+app-lint:
+  stage: app-lint
+  script:
+    - echo "Running frontend linting..."
+    - npm install
+    - npm run lint
+
+api-lint:
+  stage: api-lint
+  script:
+    - echo "Running API linting..."
+    - dotnet format --check
+
+api-test:
+  stage: api-test
+  script:
+    - echo "Running API tests..."
+    - dotnet restore
+    - dotnet test

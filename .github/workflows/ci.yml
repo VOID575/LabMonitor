@@ -1,24 +1,46 @@
-stages:
-- app-lint
-- api-lint
-- api-test
+name: CI
 
-app-lint:
-  stage: app-lint
-  script:
-    - echo "Running frontend linting..."
-    - npm install
-    - npm run lint
+on: [push]
 
-api-lint:
-  stage: api-lint
-  script:
-    - echo "Running API linting..."
-    - dotnet format --check
+jobs:
+  app-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          
+      - name: Running frontend linting...
+        run: |
+          cd LabInterface
+          npm install
+          npm run lint
 
-api-test:
-  stage: api-test
-  script:
-    - echo "Running API tests..."
-    - dotnet restore
-    - dotnet test
+  api-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '7.0.x'
+          
+      - name: Running API linting...
+        run: |
+          cd LabApi
+          dotnet format --check
+
+  api-test:
+    runs-on: ubuntu-latest
+    needs: api-lint 
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '7.0.x'
+          
+      - name: Running API tests...
+        run: |
+          cd LabApi
+          dotnet restore
+          dotnet test

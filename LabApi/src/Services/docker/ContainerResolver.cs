@@ -143,7 +143,8 @@ public class ContainerResolver
 
             if (filter.Operator == ContainerFilterOperator.contains ||
                 filter.Operator == ContainerFilterOperator.startswith ||
-                filter.Operator == ContainerFilterOperator.endswith)
+                filter.Operator == ContainerFilterOperator.endswith ||
+                filter.Operator == ContainerFilterOperator.eq)
             {
                 if (field.Equals("name", StringComparison.OrdinalIgnoreCase))
                 {
@@ -153,6 +154,11 @@ public class ContainerResolver
                 {
                     mappedContainers = ApplyStringOperatorFilter(mappedContainers, (Container c) => c.Image, filter).ToList();
                 }
+                else if (field.Equals("id", StringComparison.OrdinalIgnoreCase))
+                {
+                    mappedContainers = ApplyStringOperatorFilter(mappedContainers, (Container c) => c.Id, filter).ToList();
+                }
+                    
             }
         }
 
@@ -173,6 +179,8 @@ public class ContainerResolver
                 return items.Where(c => (accessor(c) ?? string.Empty).StartsWith(value, StringComparison.OrdinalIgnoreCase));
             case ContainerFilterOperator.endswith:
                 return items.Where(c => (accessor(c) ?? string.Empty).EndsWith(value, StringComparison.OrdinalIgnoreCase));
+            case ContainerFilterOperator.eq:
+                return items.Where(c => string.Equals(accessor(c) ?? string.Empty, value, StringComparison.OrdinalIgnoreCase));
             default:
                 return items;
         }

@@ -80,31 +80,19 @@ public class ContainerResolver
     //     return mappedContainers.ToList();
     // }
     
-    // TODO : Try this :
-    // using (var sr = new StringReader(responseJSON))
-    //     using (var jr = new JsonTextReader(sr))
-    // {
-    //     var serial = new JsonSerializer();
-    //     serial.Formatting = Formatting.Indented;
-    //     var obj = serial.Deserialize<Response>(jr);
-    // }
     public async Task<List<Container>> GetFilteredContainers(List<ContainerFilter> filters)
     {
         var dockerFilters = new Dictionary<string, IDictionary<string, bool>>();
         var containerFilters = new ObjectInspector<Container>();
-
-        // On utilise ModelConverter pour obtenir la clé Docker des labels
-
+        
         foreach (var filter in filters)
         {
             var field = filter.Field ?? string.Empty;
 
-            // 1) Gestion des filtres sur les labels imbriqués : "labels.projectHash" ou "projectHash"
             string? labelKey = ModelConverter.ConvertLabelFieldToDockerLabel(field);
 
             if (labelKey != null)
             {
-                // Docker filtre labels via la clé "label" et la valeur "key=value"
                 if (filter.Operator == ContainerFilterOperator.eq)
                 {
                     if (!dockerFilters.ContainsKey("label"))
@@ -114,12 +102,8 @@ public class ContainerResolver
                         $"{labelKey}={filter.Value}"] = true;
                     continue;
                 }
-
-                // pour les opérateurs non supportés côté Docker (contains, startswith, endswith, gt, etc.)
-                // on appliquerera un filtrage côté client après récupération des containers
             }
 
-            // 2) Champs standards : on tente de traduire le champ modèle en clé Docker
             var dockerField = ModelConverter.ConvertModelFieldToDockerField(field) ?? field.ToLowerInvariant();
 
             if (filter.Operator == ContainerFilterOperator.eq)
@@ -128,10 +112,6 @@ public class ContainerResolver
                     dockerFilters[dockerField] = new Dictionary<string, bool>();
 
                 dockerFilters[dockerField][filter.Value] = true;
-            }
-            else
-            {
-                // opérateurs non supportés par l'API Docker : on laissera le filtrage côté client plus bas
             }
         }
         var parameters = new ContainersListParameters { All = true, Filters = dockerFilters };
@@ -150,12 +130,10 @@ public class ContainerResolver
             Labels = MapLabels(container.Labels)
         }).ToList();
 
-        // Post-filtrage côté client pour les opérateurs non supportés par Docker (contains, startswith, endswith)
         foreach (var filter in filters)
         {
             var field = filter.Field ?? string.Empty;
 
-            // si c'est un filtre sur un label et l'opérateur est non-eq => utiliser l'accessor
             var labelAccessor = ModelConverter.GetContainerLabelAccessor(field);
             if (labelAccessor != null)
             {
@@ -163,12 +141,11 @@ public class ContainerResolver
                 continue;
             }
 
-            // sinon, on regarde s'il s'agit d'un champ simple (ex: name) pour appliquer contains/startswith
             if (filter.Operator == ContainerFilterOperator.contains ||
                 filter.Operator == ContainerFilterOperator.startswith ||
-                filter.Operator == ContainerFilterOperator.endswith)
+                filter.Operator == ContainerFilterOperator.endswith ||
+                filter.Operator == ContainerFilterOperator.eq)
             {
-                // nativement on ne dispose pas d'un accessor dynamique pour tous les champs; gérer les cas communs
                 if (field.Equals("name", StringComparison.OrdinalIgnoreCase))
                 {
                     mappedContainers = ApplyStringOperatorFilter(mappedContainers, (Container c) => c.Name, filter).ToList();
@@ -177,7 +154,11 @@ public class ContainerResolver
                 {
                     mappedContainers = ApplyStringOperatorFilter(mappedContainers, (Container c) => c.Image, filter).ToList();
                 }
-                // ajouter d'autres champs si nécessaire
+                else if (field.Equals("id", StringComparison.OrdinalIgnoreCase))
+                {
+                    mappedContainers = ApplyStringOperatorFilter(mappedContainers, (Container c) => c.Id, filter).ToList();
+                }
+                    
             }
         }
 
@@ -198,6 +179,8 @@ public class ContainerResolver
                 return items.Where(c => (accessor(c) ?? string.Empty).StartsWith(value, StringComparison.OrdinalIgnoreCase));
             case ContainerFilterOperator.endswith:
                 return items.Where(c => (accessor(c) ?? string.Empty).EndsWith(value, StringComparison.OrdinalIgnoreCase));
+            case ContainerFilterOperator.eq:
+                return items.Where(c => string.Equals(accessor(c) ?? string.Empty, value, StringComparison.OrdinalIgnoreCase));
             default:
                 return items;
         }

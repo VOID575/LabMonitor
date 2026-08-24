@@ -5,22 +5,23 @@ using LabApi.Services;
 using LabApi.Models;
 using LabApi.Services.docker;
 using LabApi.Enum;
+using LabApi.Interfaces;
 
 namespace LabApi.Controllers
 {
     [Route("api/docker")]
-    public class DockerController : ControllerBase 
+    public class DockerContainersController : ControllerBase 
     {
         private readonly IDockerClient _dockerClient;
         private readonly ContainerLifeCycleManager _containerLifeCycleManager;
-        private readonly ContainerResolver _containerResolver;
+        private readonly Services.docker.ContainerResolver _containerResolver;
         private readonly ContainerLogManager _containerLogManager;
         private readonly HttpErrorCodeResolver _httpErrorCodeResolver;
 
-        public DockerController(IDockerClient dockerClient, 
+        public DockerContainersController(IDockerClient dockerClient, 
             ContainerLifeCycleManager containerLifeCycleManager, 
             ContainerLogManager containerLogManager,
-            ContainerResolver containerResolver,
+            Services.docker.ContainerResolver containerResolver,
             HttpErrorCodeResolver httpErrorCodeResolver
         )
         {

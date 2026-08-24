@@ -1,0 +1,122 @@
+<div class="min-h-screen bg-[#0b1120] text-slate-300 p-8 font-sans">
+
+  <h1 class="text-2xl text-white font-semibold mb-6 flex items-center gap-2">
+    <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+    Applications
+  </h1>
+
+  <div class="flex flex-col gap-6">
+
+    <!-- Chargement -->
+    @if (isLoading) {
+      <div class="flex items-center justify-center py-20 text-slate-400">
+        <svg class="w-6 h-6 animate-spin mr-3 text-blue-500" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+        </svg>
+        Chargement des conteneurs...
+      </div>
+    }
+
+    <!-- Erreur -->
+    @if (!isLoading && error) {
+      <div class="bg-rose-500/10 border border-rose-500/30 rounded-xl p-5 text-rose-400">
+        <p class="font-medium">Impossible de charger les conteneurs</p>
+        <p class="text-sm mt-1 text-rose-300">{{ error }}</p>
+      </div>
+    }
+
+    <!-- Liste vide -->
+    @if (!isLoading && !error && containerGroups.length === 0) {
+      <div class="flex flex-col items-center justify-center py-20 text-slate-500">
+        <svg class="w-12 h-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+        <p>Aucun conteneur trouvé.</p>
+      </div>
+    }
+
+    <!-- Groupes -->
+    @for (group of containerGroups; track group.projectName) {
+      <div class="bg-[#111827] border border-slate-800 rounded-xl p-5 shadow-lg">
+
+        <a [routerLink]="routes.PROJECT_DETAIL(group.projectName)" class="block hover:bg-[#1f2937] rounded-lg transition-colors duration-200">
+          <div class="flex justify-between items-start mb-4">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 bg-slate-800 rounded-lg flex items-center justify-center">
+                🖥️
+              </div>
+
+              <div>
+                <div class="flex items-center gap-3">
+                  <h2 class="text-xl text-white font-medium">{{ group.projectName | titlecase }}</h2>
+
+                  <div class="px-2 py-0.5 rounded-full text-xs font-medium flex items-center gap-1.5"
+                       [ngClass]="{
+                      'bg-emerald-500/10 text-emerald-400': group.groupState === 'running',
+                      'bg-amber-500/10 text-amber-400': group.groupState === 'warning',
+                      'bg-rose-500/10 text-rose-400': group.groupState === 'exited' || group.groupState === 'dead'
+                    }">
+                    <div class="w-1.5 h-1.5 rounded-full"
+                         [ngClass]="{
+                           'bg-emerald-400': group.groupState === 'running',
+                           'bg-amber-400': group.groupState === 'warning',
+                           'bg-rose-400': group.groupState === 'exited' || group.groupState === 'dead'
+                         }"></div>
+                    {{ group.groupState === 'running' ? 'Sain' : (group.groupState === 'warning' ? 'Attention' : 'Erreur') }}
+                  </div>
+                </div>
+
+                <p class="text-sm text-slate-400 mt-1">
+                  Groupe de conteneurs pour {{ group.projectName }}
+                </p>
+              </div>
+            </div>
+
+            <div class="text-slate-500 hover:text-white transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-6 text-sm text-slate-400 mb-5 ml-16">
+            <div class="flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+              {{ group.totalCount }} conteneurs <span class="text-emerald-400">({{ group.activeCount }} actifs)</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m14-6h2m-2 6h2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path></svg>
+              CPU: {{ group.totalCpu }}%
+            </div>
+            <div class="flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
+              RAM: {{ group.totalMemory }} GB
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-3 ml-16">
+            @for (container of group.containers; track container.name) {
+              <div class="flex items-center gap-2 px-3 py-1.5 bg-[#0f172a] rounded-md border border-slate-800 text-sm">
+
+                <div class="w-2 h-2 rounded-full"
+                     [ngClass]="{
+                   'bg-emerald-500': container.state === 'running',
+                   'bg-blue-500': container.state === 'restarting',
+                   'bg-slate-500': container.state !== 'running' && container.state !== 'restarting'
+                 }">
+                </div>
+
+                <span [ngClass]="{
+              'text-emerald-400': container.state === 'running',
+              'text-blue-400': container.state === 'restarting',
+              'text-slate-400': container.state !== 'running' && container.state !== 'restarting'
+            }">
+              {{ container.state === 'running' ? 'En cours' : (container.state === 'restarting' ? 'Redémarrage' : 'Arrêté') }}
+            </span>
+                <span class="text-slate-300 ml-1">{{ container.name }}</span>
+              </div>
+            }
+          </div>
+        </a>
+
+      </div>
+    }
+  </div>
+</div>

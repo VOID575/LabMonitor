@@ -12,8 +12,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseAuthorization();
+app.UseHttpsRedirection();
+app.UseRouting();
+app.UseCors("AllowAngularFrontend");
 
+app.UseAuthorization();
 app.MapControllers();
 app.MapAllHubs();
 

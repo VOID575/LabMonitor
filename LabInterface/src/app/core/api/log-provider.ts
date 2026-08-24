@@ -1,7 +1,4 @@
 import {environment} from '../../../environments/environment';
-import { DockerContainer } from '../../shared/Interfaces/containers/containers.model';
-import { ContainerGroup } from '../../shared/Interfaces/containers/container-group.model';
-import {ApiResult} from '../../shared/Interfaces/api-result-model';
 
 export class LogProvider {
 

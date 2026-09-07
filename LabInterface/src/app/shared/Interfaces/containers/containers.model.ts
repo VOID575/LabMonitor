@@ -1,4 +1,4 @@
-import {DockerContainerLabel} from './container-label-model';
+import {DockerContainerLabel} from './container-label.model';
 import {ContainerPort} from './container-port.model';
 import {ContainerState} from '../../Enums/container-state'
 

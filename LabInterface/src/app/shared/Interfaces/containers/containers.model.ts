@@ -1,4 +1,5 @@
 import {DockerContainerLabel} from './container-label-model';
+import {ContainerPort} from './container-port.model';
 import {ContainerState} from '../../Enums/container-state'
 
 export interface DockerContainer {
@@ -7,6 +8,7 @@ export interface DockerContainer {
   state: ContainerState;
   status: string;
   labels: DockerContainerLabel;
+  Port : ContainerPort;
   cpuUsage?: number;
   memoryUsage?: number;
 }

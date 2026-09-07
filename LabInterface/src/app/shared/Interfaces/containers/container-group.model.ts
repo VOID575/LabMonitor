@@ -7,6 +7,9 @@ export interface ContainerGroup {
   activeCount: number;
   totalCount: number;
   groupState: ContainerState;
+  PrivatePort: number;
+  PublicPOrt : number;
+  type :
   totalCpu: number;
   totalMemory: number;
 }

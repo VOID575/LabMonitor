@@ -1,7 +1,7 @@
 services:
   api:
     # user: "${UID}:${GID}"
-    image: mcr.microsoft.com/dotnet/sdk:8.0
+    image: mcr.microsoft.com/dotnet/sdk:10.0
     container_name: LabApi
     volumes:
       - ./LabApi:/app

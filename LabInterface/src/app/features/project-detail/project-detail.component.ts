@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, NgZone, Inject } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, NgZone, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
 import {CommonModule} from '@angular/common';
@@ -17,22 +17,20 @@ import { ActivatedRoute } from '@angular/router';
   templateUrl: './project-detail.component.html'
 })
 export class ProjectDetailComponent implements OnInit {
+  private router = inject(ActivatedRoute);
+  private cdr = inject(ChangeDetectorRef);
+  private ngZone = inject(NgZone);
+  private platformId = inject(PLATFORM_ID);
+
 
   readonly routes = AppRoutes; // Expose AppRoutes to the template
   containerProvider : ContainerProvider = new ContainerProvider();
   dockerComposeManager : DockerComposeManager = new DockerComposeManager();
   error: string | null = null;
   containers: DockerContainer[] = [];
-  isLoading: boolean = true;
-  projectName: string = '';
-  isBrowser: boolean = false;
-
-  constructor(
-    private router: ActivatedRoute,
-    private cdr: ChangeDetectorRef,
-    private ngZone: NgZone,
-    @Inject(PLATFORM_ID) private platformId: Object,
-  ) {}
+  isLoading = true;
+  projectName = '';
+  isBrowser = false;
 
   async ngOnInit() {
     this.isBrowser = isPlatformBrowser(this.platformId);
@@ -53,12 +51,18 @@ export class ProjectDetailComponent implements OnInit {
       this.ngZone.run(() => {
         this.containers = data;
         this.isLoading = false;
-        try { this.cdr.detectChanges(); } catch (e) { /* noop */ }
+        try {
+          this.cdr.detectChanges();
+        } catch (e) {
+          console.error('[ProjectDetail] Erreur :', e);
+        }
       });
-    } catch (e: any) {
-      this.error = e?.message ?? 'Erreur inconnue lors du chargement des conteneurs.';
-      console.error('[ProjectDetail] Erreur :', e);
-      this.ngZone.run(() => { this.isLoading = false; try { this.cdr.detectChanges(); } catch {} });
+    } catch (e) {
+      if(e instanceof Error) {
+        this.error = e?.message ?? 'Erreur inconnue lors du chargement des conteneurs.';
+        console.error('[ProjectDetail] Erreur :', e);
+        this.ngZone.run(() => { this.isLoading = false; try { this.cdr.detectChanges(); } catch (e){console.error('[ProjectDetail] Erreur :', e);} });
+      }
     }
   }
 
@@ -66,7 +70,7 @@ export class ProjectDetailComponent implements OnInit {
     if (!this.projectName) return;
     this.isLoading = true;
 
-    this.dockerComposeManager.startProject(this.projectName).then(result => {
+    this.dockerComposeManager.startProject(this.projectName).then(() => {
         this.isLoading = false;
       }).catch( error => {
         this.error = error;
@@ -80,7 +84,7 @@ export class ProjectDetailComponent implements OnInit {
     if (!this.projectName) return;
     this.isLoading = true;
     console.log('[ProjectDetail] Tentative d\'arrêt de la stack :', this.projectName);
-    this.dockerComposeManager.stopProject(this.projectName).then(result => {
+    this.dockerComposeManager.stopProject(this.projectName).then(() => {
       this.isLoading = false;
     }).catch( error => {
       this.error = error;
@@ -94,7 +98,7 @@ export class ProjectDetailComponent implements OnInit {
     if (!this.projectName) return;
     this.isLoading = true;
 
-    this.dockerComposeManager.downProject(this.projectName).then(result => {
+    this.dockerComposeManager.downProject(this.projectName).then(() => {
       this.isLoading = false;
     }).catch( error => {
       this.error = error;

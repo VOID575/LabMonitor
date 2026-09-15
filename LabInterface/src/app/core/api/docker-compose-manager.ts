@@ -1,5 +1,4 @@
 import {environment} from '../../../environments/environment';
-import { DockerContainer } from '../../shared/Interfaces/containers/containers.model';
 import {ApiResult} from '../../shared/Interfaces/api-result-model';
 
 export class DockerComposeManager {

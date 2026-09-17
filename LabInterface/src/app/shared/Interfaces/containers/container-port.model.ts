@@ -1,6 +1,6 @@
 export interface ContainerPort {
-  IP : string;
-  PrivatePort : number;
-  PublicPort : number;
-  Type : string;
+  ip : string;
+  privatePort : number;
+  publicPort : number;
+  type : string;
 }

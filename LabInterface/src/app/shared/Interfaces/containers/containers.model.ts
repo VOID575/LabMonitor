@@ -8,7 +8,7 @@ export interface DockerContainer {
   state: ContainerState;
   status: string;
   labels: DockerContainerLabel;
-  Port : ContainerPort;
+  ports : ContainerPort[];
   cpuUsage?: number;
   memoryUsage?: number;
 }

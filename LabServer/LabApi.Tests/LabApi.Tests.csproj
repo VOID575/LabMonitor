@@ -19,7 +19,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\LabApi.csproj" />
+      <ProjectReference Include="..\LabApi\LabApi.csproj" />
     </ItemGroup>
-
+    
 </Project>

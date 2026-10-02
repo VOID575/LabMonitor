@@ -11,8 +11,16 @@ namespace LabApi.Extensions;
 
 public static class ServicesExtensions
 {
+    
+    private const string WindowsDockerPath = "npipe://./pipe/docker_engine";
+    private const string LinuxDockerPath = "unix:///var/run/docker.sock";
+    
     public static void AddAllServices(this WebApplicationBuilder builder)
     {
+        Uri dockerUri = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? new Uri(WindowsDockerPath)
+            : new Uri(LinuxDockerPath);
+        
         builder.Services.AddControllers(); 
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
@@ -20,14 +28,9 @@ public static class ServicesExtensions
 
         builder.Services.AddSingleton<IDockerClient>(sp =>
         {
-            return new DockerClientConfiguration(
-                    new Uri("unix:///var/run/docker.sock"))
+            return new DockerClientConfiguration(dockerUri)
                 .CreateClient();
         });
-        
-        var dockerUri = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? new Uri("npipe://./pipe/docker_engine")
-            : new Uri("unix:///var/run/docker.sock");
         
         builder.Services.AddSingleton<DockerClient>(provider =>
         {

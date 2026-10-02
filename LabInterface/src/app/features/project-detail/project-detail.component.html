@@ -90,6 +90,7 @@
           <div>
               @if (container.ports.length > 0 && container.ports[0].publicPort) {
                 <div class="flex flex-wrap gap-2 justify-center">
+                  <!-- Might need to be updated, the first port might not always be the good one -->
                   <a href="http://{{ clientInfoProvider.getServerHost() + ':' + container.ports[0].publicPort }}"
                      target="_blank"
                      rel="noopener noreferrer"

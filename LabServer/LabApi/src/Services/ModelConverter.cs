@@ -15,7 +15,7 @@ public class ModelConverter
     
     public ModelConverter() => this._containerFieldInspector = new ObjectInspector<Container>();
     
-    private static readonly Dictionary<string, string> ContainerToDockerFieldMap = new(StringComparer.OrdinalIgnoreCase)
+    public readonly Dictionary<string, string> ContainerToDockerFieldMap = new(StringComparer.OrdinalIgnoreCase)
     {
         { "id", "id" },
         { "name", "name" },
@@ -29,16 +29,41 @@ public class ModelConverter
         { "volume", "volume" }
     };
 
-    private static readonly Dictionary<string, string> LabelFieldMap = new(StringComparer.OrdinalIgnoreCase)
+    public readonly Dictionary<string, string> LabelFieldMap = new(StringComparer.OrdinalIgnoreCase)
     {
         { "projecthash", "com.docker.compose.config-hash" },
         { "projectname", "com.docker.compose.project" },
         { "service", "com.docker.compose.service" },
         { "version", "com.docker.compose.version" }
     };
+    
+    public List<Container> MapToDto(IList<ContainerListResponse> rawContainers)
+    {
+        return rawContainers.Select(container => new Container
+        {
+            Id = container.ID,
+            Image = container.Image,
+            Created = container.Created,
+            Status = container.Status,
+            Name = container.Names?.FirstOrDefault() ?? string.Empty,
+            State = container.State,
+            Ports = container.Ports,
+            Labels = MapContainerResponseLabelsToContainerDtoLabels(container.Labels),
+        }).ToList();
+    }
+    
+    public ContainerLabel MapContainerResponseLabelsToContainerDtoLabels(IDictionary<string, string> labels)
+    {
+        return new ContainerLabel
+        {
+            ProjectHash = labels.TryGetValue(LabelFieldMap["projecthash"], out var hash) ? hash : string.Empty,
+            ProjectName = labels.TryGetValue(LabelFieldMap["projectname"], out var project) ? project : string.Empty,
+            Service = labels.TryGetValue(LabelFieldMap["service"], out var service) ? service : string.Empty,
+            Version = labels.TryGetValue(LabelFieldMap["version"], out var version) ? version : string.Empty
+        };
+    }
 
-    // Retourne la clé Docker pour un champ de label du modèle (ex: "projectHash" -> "com.docker.compose.config-hash")
-    public static string? ConvertLabelFieldToDockerLabel(string modelField)
+    public string? ConvertLabelFieldToDockerLabel(string modelField)
     {
         if (string.IsNullOrWhiteSpace(modelField))
             return null;
@@ -50,10 +75,8 @@ public class ModelConverter
 
         return LabelFieldMap.TryGetValue(candidate, out var dockerLabel) ? dockerLabel : null;
     }
-
-    // Retourne un accesseur qui récupère la valeur de label correspondant sur un DTO Container
-    // Ex: "projectHash" -> c => c.Labels?.ProjectHash
-    public static Func<Container, string?>? GetContainerLabelAccessor(string modelField)
+    
+    public Func<Container, string?>? GetContainerLabelAccessor(string modelField)
     {
         if (string.IsNullOrWhiteSpace(modelField))
             return null;
@@ -72,7 +95,7 @@ public class ModelConverter
         };
     }
 
-    public static string? ConvertModelFieldToDockerField(string modelField)
+    public string? ConvertModelFieldToDockerField(string modelField)
     {
         if (string.IsNullOrWhiteSpace(modelField))
             return null;

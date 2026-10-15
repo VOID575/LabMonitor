@@ -14,14 +14,14 @@ namespace LabApi.Controllers
     {
         private readonly IDockerClient _dockerClient;
         private readonly ContainerLifeCycleManager _containerLifeCycleManager;
-        private readonly Services.docker.ContainerResolver _containerResolver;
+        private readonly ContainerResolver _containerResolver;
         private readonly ContainerLogManager _containerLogManager;
         private readonly HttpErrorCodeResolver _httpErrorCodeResolver;
 
         public DockerContainersController(IDockerClient dockerClient, 
             ContainerLifeCycleManager containerLifeCycleManager, 
             ContainerLogManager containerLogManager,
-            Services.docker.ContainerResolver containerResolver,
+            ContainerResolver containerResolver,
             HttpErrorCodeResolver httpErrorCodeResolver
         )
         {

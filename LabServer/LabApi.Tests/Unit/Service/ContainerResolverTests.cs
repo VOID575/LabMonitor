@@ -7,6 +7,7 @@ using LabApi.Models;
 using LabApi.Controllers;
 using LabApi.Enum;
 using LabApi.Interfaces.Controllers;
+using LabApi.Services;
 using LabApi.Services.docker;
 using ContainerResolver = LabApi.Services.docker.ContainerResolver;
 
@@ -51,7 +52,7 @@ public class ContainerResolverTests
             ))
             .ReturnsAsync(GetFakeContainers());
 
-        return new ContainerResolver(mockDockerClient.Object);
+        return new ContainerResolver(mockDockerClient.Object, new ModelConverter());
     }
 
     #region Tests pour le champ "id"

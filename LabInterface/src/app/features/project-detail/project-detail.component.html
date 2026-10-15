@@ -88,9 +88,9 @@
             </div>
           </div>
           <div>
-              @if (container.ports.length > 0 && container.ports[0].publicPort) {
+              @if (container.ports.length > 0 && container.state === "running") {
                 <div class="flex flex-wrap gap-2 justify-center">
-                  <a href="http://{{ clientInfoProvider.getServerHost() + ':' + container.ports[0].publicPort }}"
+                  <a href="{{ containerManager.resolveServiceRedirectionUrl(container.ports)}}"
                      target="_blank"
                      rel="noopener noreferrer"
                      class="flex justify-center w-full">

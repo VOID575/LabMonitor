@@ -14,71 +14,22 @@ namespace LabApi.Services.docker;
 public class ContainerResolver
 {
     private readonly IDockerClient _dockerClient;
+    private readonly ModelConverter _modelConverter;
     
-    public ContainerResolver(IDockerClient dockerClient)
+    public ContainerResolver(IDockerClient dockerClient, ModelConverter modelConverter)
     {
         this._dockerClient = dockerClient;
-    }
-    
-        
-    private static ContainerLabel MapLabels(IDictionary<string, string> labels)
-    {
-        return new ContainerLabel
-        {
-            ProjectHash = labels.TryGetValue("com.docker.compose.config-hash", out var hash) ? hash : string.Empty,
-            ProjectName = labels.TryGetValue("com.docker.compose.project", out var project) ? project : string.Empty,
-            Service = labels.TryGetValue("com.docker.compose.service", out var service) ? service : string.Empty,
-            Version = labels.TryGetValue("com.docker.compose.version", out var version) ? version : string.Empty
-        };
+        this._modelConverter = modelConverter;
     }
 
     public async Task<List<Container>> GetAllContainers()
     {
-        var response = await this._dockerClient.Containers.ListContainersAsync(new ContainersListParameters() { All = true });
-        
-        var containers = response.Select(container => new Container
-        {
-            Id = container.ID,
-            Image = container.Image,
-            Created = container.Created,
-            Status = container.Status,
-            Name = container.Names[0],
-            State = container.State,
-            Ports = container.Ports,
-            Labels = MapLabels(container.Labels)
-        }).ToList();
-        
+        var response = await this._dockerClient.Containers.ListContainersAsync(
+            new ContainersListParameters() { All = true }
+            );
 
-        return containers;
+        return response == null ? new List<Container>() : this._modelConverter.MapToDto(response).ToList();
     }
-    
-    // public async Task<List<Container>> GetFilteredContainers(List<ContainerFilter> filters)
-    // {
-    //     var dockerFilters = new Dictionary<string, IDictionary<string, bool>>();
-    //
-    //     var statusFilters = filters.Where(f => f.Field.ToLower() == "status" && f.Operator == ContainerFilterOperator.eq);
-    //     foreach (var filter in statusFilters)
-    //     {
-    //         if (!dockerFilters.ContainsKey("status"))
-    //             dockerFilters["status"] = new Dictionary<string, bool>();
-    //         
-    //         dockerFilters["status"].Add(filter.Value, true);
-    //     }
-    //
-    //     var parameters = new ContainersListParameters { All = true, Filters = dockerFilters };
-    //
-    //     var rawContainers = await _dockerClient.Containers.ListContainersAsync(parameters);
-    //
-    //     var mappedContainers = rawContainers.Select(c => MapToDto(c)).AsQueryable();
-    //
-    //     var nameContainsFilters = filters.Where(f => f.Field.ToLower() == "name" && f.Operator == "contains");
-    //     foreach (var filter in nameContainsFilters)
-    //     {
-    //         mappedContainers = mappedContainers.Where(c => c.Name.Contains(filter.Value, StringComparison.OrdinalIgnoreCase));
-    //     }
-    //
-    //     return mappedContainers.ToList();
-    // }
     
     public async Task<List<Container>> GetFilteredContainers(List<ContainerFilter> filters)
     {
@@ -89,7 +40,7 @@ public class ContainerResolver
         {
             var field = filter.Field ?? string.Empty;
 
-            string? labelKey = ModelConverter.ConvertLabelFieldToDockerLabel(field);
+            string? labelKey = this._modelConverter.ConvertLabelFieldToDockerLabel(field);
 
             if (labelKey != null)
             {
@@ -104,7 +55,7 @@ public class ContainerResolver
                 }
             }
 
-            var dockerField = ModelConverter.ConvertModelFieldToDockerField(field) ?? field.ToLowerInvariant();
+            var dockerField = this._modelConverter.ConvertModelFieldToDockerField(field) ?? field.ToLowerInvariant();
 
             if (filter.Operator == ContainerFilterOperator.eq)
             {
@@ -118,23 +69,15 @@ public class ContainerResolver
         
         var rawContainers = await _dockerClient.Containers.ListContainersAsync(parameters);
 
-        var mappedContainers = rawContainers.Select(container => new Container
-        {
-            Id = container.ID,
-            Image = container.Image,
-            Created = container.Created,
-            Status = container.Status,
-            Name = container.Names?.FirstOrDefault() ?? string.Empty,
-            State = container.State,
-            Ports = container.Ports,
-            Labels = MapLabels(container.Labels)
-        }).ToList();
+        var mappedContainers = rawContainers == null ? 
+            new List<Container>() : 
+            this._modelConverter.MapToDto(rawContainers).ToList();
 
         foreach (var filter in filters)
         {
             var field = filter.Field ?? string.Empty;
 
-            var labelAccessor = ModelConverter.GetContainerLabelAccessor(field);
+            var labelAccessor = this._modelConverter.GetContainerLabelAccessor(field);
             if (labelAccessor != null)
             {
                 mappedContainers = ApplyStringOperatorFilter(mappedContainers, labelAccessor, filter).ToList();

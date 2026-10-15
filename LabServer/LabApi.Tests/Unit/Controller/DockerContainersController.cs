@@ -47,9 +47,12 @@ public class DockerContainersControllerTests
             {
                 Id = c.ID,
                 Name = c.Names[0],
+                Ports = c.Ports,
+                Created = new DateTimeOffset(DateTime.UtcNow).DateTime,
+                Status = c.Status,
                 Image = c.Image,
                 State = c.State,
-                Labels = new ContainerLabel { ProjectName = c.Labels["ProjectName"] }
+                Labels = new ContainerLabel { ProjectName = c.Labels["ProjectName"] },
             }).ToList());
 
         var mockDockerClient = new Mock<IDockerClient>();

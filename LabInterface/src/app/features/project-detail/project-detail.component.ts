@@ -8,6 +8,7 @@ import { DockerComposeManager } from '../../core/api/docker-compose-manager';
 import { AppRoutes} from '../../app.routes.names';
 import {DockerContainer} from '../../shared/Interfaces/containers/containers.model';
 import { ActivatedRoute } from '@angular/router';
+import {ContainerManager} from '../../core/api/container-manager';
 
 
 @Component({
@@ -25,6 +26,7 @@ export class ProjectDetailComponent implements OnInit {
 
   readonly routes = AppRoutes; // Expose AppRoutes to the template
   containerProvider : ContainerProvider = new ContainerProvider();
+  containerManager : ContainerManager = new ContainerManager();
   dockerComposeManager : DockerComposeManager = new DockerComposeManager();
   error: string | null = null;
   containers: DockerContainer[] = [];
@@ -44,7 +46,7 @@ export class ProjectDetailComponent implements OnInit {
       const name = this.router.snapshot.paramMap.get('projectName');
       console.log(name);
       this.projectName = name ?? '';
-      const data = await this.containerProvider.getContainerByProjectName(this.projectName);
+      const data: DockerContainer[] = await this.containerProvider.getContainerByProjectName(this.projectName);
       console.log('[loadContainersProjectDetail] Conteneurs reçus :', data);
 
       // assign inside Angular zone to ensure change detection runs

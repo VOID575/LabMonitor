@@ -50,6 +50,7 @@ public static class ServicesExtensions
         });
 
         builder.Services.AddSingleton<HttpErrorCodeResolver>();
+        builder.Services.AddSingleton<ModelConverter>();
         builder.Services.AddScoped<ContainerLifeCycleManager>();
         builder.Services.AddScoped<ContainerResolver>();
         builder.Services.AddScoped<ContainerLogManager>();

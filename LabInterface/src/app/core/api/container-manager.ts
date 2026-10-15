@@ -1,8 +1,12 @@
 import {DockerContainer} from '../../shared/Interfaces/containers/containers.model';
 import {ContainerGroup} from '../../shared/Interfaces/containers/container-group.model';
 import {ContainerState} from '../../shared/Enums/container-state';
+import {ClientInfoProvider} from '../client/clientInfoProvider';
+import {ContainerPort} from '../../shared/Interfaces/containers/container-port.model';
 
 export class ContainerManager {
+
+  private clientInfoProvider: ClientInfoProvider = new ClientInfoProvider();
 
   public groupContainers(containers: DockerContainer[]): ContainerGroup[] {
     const groupsMap = new Map<string, DockerContainer[]>();
@@ -40,4 +44,14 @@ export class ContainerManager {
     return result;
   }
 
+  public resolveServiceRedirectionUrl(ports: ContainerPort[]) : string {
+
+    let resolvedPort = ports[0].publicPort.toString();
+
+    ports.forEach(port => {
+      if (port.ip == '0.0.0.0') resolvedPort = port.publicPort.toString();
+    })
+
+    return 'http://' + this.clientInfoProvider.getServerHost() + ':' + resolvedPort;
+  }
 }

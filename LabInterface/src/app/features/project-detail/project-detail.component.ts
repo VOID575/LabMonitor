@@ -8,7 +8,6 @@ import { DockerComposeManager } from '../../core/api/docker-compose-manager';
 import { AppRoutes} from '../../app.routes.names';
 import {DockerContainer} from '../../shared/Interfaces/containers/containers.model';
 import { ActivatedRoute } from '@angular/router';
-import {ClientInfoProvider} from '../../core/client/clientInfoProvider';
 import {ContainerManager} from '../../core/api/container-manager';
 
 

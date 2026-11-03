@@ -1,66 +1,66 @@
 # LabMonitor
 
-> **État du projet :** Ce projet est actuellement en cours de développement. Il s'agit d'un **prototype** (Proof of Concept) visant à créer une architecture robuste pour l'administration de conteneurs. Les fonctionnalités sont sujettes à évolution.
+> **Project Status:** This project is currently under active development. It is a **prototype** (Proof of Concept) aimed at building a robust architecture for container administration. Features are subject to change.
 
-**LabMonitor** est un tableau de bord web sur-mesure (façon "mini-Portainer") conçu pour surveiller, piloter et administrer des conteneurs Docker et des stacks Docker Compose. Il offre une interface graphique moderne et fluide pour remplacer la complexité des lignes de commande CLI, tout en garantissant une exécution backend fiable et "stateless".
-
----
-
-## Fonctionnalités Principales
-
-*   **Vue d'ensemble par Projet :** Regroupement intelligent des conteneurs par stack (ex: `sae4`).
-*   **Télémétrie en temps réel :** Affichage de la consommation CPU, de la RAM, et du nombre de conteneurs actifs/inactifs.
-*   **Statuts de santé :** Indicateurs visuels (Sain, Attention, Erreur) basés sur l'état des sous-conteneurs (running, restarting, exited, dead).
-*   **Filtrage Avancé :** Moteur de recherche puissant permettant de filtrer les conteneurs par `id`, `name` ou `image` via des opérateurs stricts (`eq`, `contains`, `startswith`, `endswith`).
-*   **Gestion des Stacks :** Arrêt et démarrage dynamique des environnements `docker compose` directement depuis l'interface.
+**LabMonitor** is a custom web dashboard (in the style of a "mini-Portainer") designed to monitor, manage, and control Docker containers and Docker Compose stacks. It provides a modern and smooth graphical user interface to replace the complexity of CLI commands, while ensuring reliable and stateless backend execution.
 
 ---
 
-## Stack Technique
+## Key Features
 
-Le projet est divisé en deux applications distinctes, favorisant le découplage et la testabilité.
+*   **Project Overview:** Smart grouping of containers by stack (e.g., `sae4`).
+*   **Real-time Telemetry:** Live display of CPU usage, RAM consumption, and active/inactive container counts.
+*   **Health Statuses:** Visual indicators (Healthy, Warning, Error) based on sub-container states (`running`, `restarting`, `exited`, `dead`).
+*   **Advanced Filtering:** Powerful search engine enabling container filtering by `id`, `name`, or `image` using strict operators (`eq`, `contains`, `startswith`, `endswith`).
+*   **Stack Management:** Dynamically stop and start `docker compose` environments directly from the interface.
+
+---
+
+## Tech Stack
+
+The project is split into two distinct applications, promoting decoupling and testability.
 
 ### Backend (`LabApi`)
-*   **Framework :** .NET 10.0 (C#)
-*   **Moteur Docker :** `Docker.DotNet` (via le socket `/var/run/docker.sock`)
-*   **Exécution Système :** API `Process.Start` native pour l'exécution des commandes `docker compose` (remplace FluentDocker pour une meilleure stabilité stateless).
-*   **Tests :** `xUnit` et `Moq` (Architecture orientée Interfaces et Injection de Dépendances).
+*   **Framework:** .NET 10.0 (C#)
+*   **Docker Engine:** `Docker.DotNet` (via the `/var/run/docker.sock` socket)
+*   **System Execution:** Native `Process.Start` API for running `docker compose` commands (replaces FluentDocker for better stateless stability).
+*   **Testing:** `xUnit` and `Moq` (Interface-driven architecture and Dependency Injection).
 
 ### Frontend (`LabInterface`)
-*   **Framework :** Angular 21 (avec Server-Side Rendering - SSR)
-*   **Styling :** Tailwind CSS v4 (Thème sombre orienté Dashboard technique)
-*   **Standards :** Utilisation du Control Flow moderne (`@if`, `@for`), de l'injection moderne (`inject()`), et respect strict des règles **ESLint** & **Prettier**.
+*   **Framework:** Angular 21 (with Server-Side Rendering - SSR)
+*   **Styling:** Tailwind CSS v4 (Dark theme tailored for a technical dashboard)
+*   **Standards:** Modern Control Flow (`@if`, `@for`), modern dependency injection (`inject()`), and strict compliance with **ESLint** & **Prettier** rules.
 
 ---
 
-## Architecture Système
+## System Architecture
 
-Le diagramme ci-dessous illustre comment l'interface communique avec l'API, qui elle-même interagit avec le système Linux hôte et le démon Docker.
+The diagram below illustrates how the frontend communicates with the API, which in turn interacts with the host Linux system and the Docker daemon.
 
 ```mermaid
 graph TD
     subgraph Frontend [LabInterface - Angular 21]
-        UI[Tableau de Bord / UI]
-        Services[Services HTTP]
+        UI[Dashboard / UI]
+        Services[HTTP Services]
     end
 
     subgraph Backend [LabApi - .NET 10]
-        Controllers[Contrôleurs REST]
+        Controllers[REST Controllers]
         Resolver[ContainerResolver]
         ProcessRunner[Process Manager]
     end
 
-    subgraph Infrastructure Hôte
+    subgraph Infrastructure [Host Infrastructure]
         DockerEngine[(Docker Engine\n/var/run/docker.sock)]
-        HostOS[Terminal OS\nCLI]
+        HostOS[Host OS Terminal\nCLI]
     end
 
-    UI -->|Appels HTTP| Controllers
+    UI -->|HTTP Calls| Controllers
     Controllers --> Resolver
     Controllers --> ProcessRunner
     
-    Resolver -->|API Docker.DotNet| DockerEngine
-    ProcessRunner -->|Commandes docker compose| HostOS
+    Resolver -->|Docker.DotNet API| DockerEngine
+    ProcessRunner -->|docker compose commands| HostOS
     
     classDef frontend fill:#dd0031,stroke:#a60024,color:white;
     classDef backend fill:#512bd4,stroke:#3b1e9c,color:white;
@@ -71,15 +71,15 @@ graph TD
     class Infrastructure infra;
 ```
 
-## Intégration Continue (CI) & Tests
+## Continuous Integration (CI) & Testing
 
-La qualité du code est assurée par un pipeline de vérification en deux étapes : la validation syntaxique (Linter) côté Frontend, suivie par l'exécution des tests unitaires mockés côté Backend.
+Code quality is ensured by a two-step verification pipeline: syntax validation (Linter) on the Frontend, followed by running mocked unit tests on the Backend.
 
 ```mermaid
 flowchart LR
-    Start([Nouveau Code]) --> Lint[🧹 ESLint & Prettier\nLabInterface]
+    Start([New Code]) --> Lint[🧹 ESLint & Prettier\nLabInterface]
     Lint --> Build[🔨 Build .NET 10\nLabApi]
-    Build --> Test[🧪 Tests xUnit & Moq\nLabApi.Tests]
+    Build --> Test[🧪 xUnit & Moq Tests\nLabApi.Tests]
     Test --> Success([✅ Validation OK])
     
     style Start fill:#374151,stroke:#1f2937,color:white
@@ -89,5 +89,5 @@ flowchart LR
     style Success fill:#10b981,stroke:#059669,color:white
 ```
 
-## Focus sur l'ingénierie des tests
-Les tests de l'API sont isolés du moteur Docker physique grâce à Moq. Le système injecte des faux clients Docker (IDockerClient, IContainerOperations) pour garantir une exécution des tests en quelques millisecondes, quel que soit l'environnement hôte, et pour valider la logique de filtrage LINQ indépendamment de l'infrastructure.
+## Focus on Test Engineering
+API tests are isolated from the physical Docker engine using Moq. The system injects mock Docker clients (`IDockerClient`, `IContainerOperations`) to guarantee test execution within milliseconds, regardless of the host environment, and to validate LINQ filtering logic independently of the underlying infrastructure.
